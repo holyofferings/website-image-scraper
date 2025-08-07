@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Website Image Scraper</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .input-group {
+            margin-bottom: 30px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #333;
+            font-size: 1.1rem;
+        }
+
+        .url-input {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        .url-input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .scrape-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .scrape-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .scrape-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .progress-section {
+            display: none;
+            margin-top: 30px;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            border: 2px solid #e1e5e9;
+        }
+
+        .progress-bar-container {
+            background: #e1e5e9;
+            height: 10px;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .progress-text {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .progress-percentage {
+            background: #667eea;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .status-message {
+            color: #666;
+            font-style: italic;
+            margin-top: 10px;
+        }
+
+        .download-section {
+            display: none;
+            margin-top: 30px;
+            padding: 30px;
+            background: #e8f5e8;
+            border-radius: 15px;
+            border: 2px solid #4caf50;
+            text-align: center;
+        }
+
+        .success-icon {
+            font-size: 3rem;
+            color: #4caf50;
+            margin-bottom: 15px;
+        }
+
+        .download-btn {
+            background: #4caf50;
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 15px;
+        }
+
+        .download-btn:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(76, 175, 80, 0.3);
+        }
+
+        .error-section {
+            display: none;
+            margin-top: 30px;
+            padding: 30px;
+            background: #ffeaea;
+            border-radius: 15px;
+            border: 2px solid #f44336;
+            text-align: center;
+        }
+
+        .error-icon {
+            font-size: 3rem;
+            color: #f44336;
+            margin-bottom: 15px;
+        }
+
+        .error-message {
+            color: #d32f2f;
+            font-weight: 600;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .features {
+            margin-top: 40px;
+            padding-top: 40px;
+            border-top: 2px solid #e1e5e9;
+        }
+
+        .features h3 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+            font-size: 1.5rem;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .feature-card {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+
+        .feature-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .feature-description {
+            color: #666;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .header {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🖼️ Website Image Scraper</h1>
+            <p>Crawl entire websites and extract all images with detailed CSV reports</p>
+        </div>
+
+        <div class="content">
+            <div class="input-group">
+                <label for="website-url">Website URL</label>
+                <input type="url" id="website-url" class="url-input" 
+                       placeholder="https://example.com" 
+                       required>
+            </div>
+
+            <button id="scrape-btn" class="scrape-btn">
+                🚀 Start Scraping
+            </button>
+
+            <div id="progress-section" class="progress-section">
+                <div class="progress-info">
+                    <span class="progress-text">Scraping in progress...</span>
+                    <span id="progress-percentage" class="progress-percentage">0%</span>
+                </div>
+                <div class="progress-bar-container">
+                    <div id="progress-bar" class="progress-bar"></div>
+                </div>
+                <div id="status-message" class="status-message">Initializing...</div>
+                
+                <div class="stats">
+                    <div class="stat-card">
+                        <div id="pages-found" class="stat-number">0</div>
+                        <div class="stat-label">Pages Found</div>
+                    </div>
+                    <div class="stat-card">
+                        <div id="pages-scraped" class="stat-number">0</div>
+                        <div class="stat-label">Pages Scraped</div>
+                    </div>
+                    <div class="stat-card">
+                        <div id="total-images" class="stat-number">0</div>
+                        <div class="stat-label">Images Found</div>
+                    </div>
+                    <div class="stat-card">
+                        <div id="downloaded-images" class="stat-number">0</div>
+                        <div class="stat-label">Downloaded</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="download-section" class="download-section">
+                <div class="success-icon">✅</div>
+                <h3>Scraping Complete!</h3>
+                <p>Your images have been successfully scraped and organized.</p>
+                <div class="stats">
+                    <div class="stat-card">
+                        <div id="final-count" class="stat-number">0</div>
+                        <div class="stat-label">Images Downloaded</div>
+                    </div>
+                </div>
+                <a id="download-btn" class="download-btn" href="#" download>
+                    📥 Download ZIP File
+                </a>
+                <p style="margin-top: 15px; color: #666; font-size: 0.9rem;">
+                    Contains: Images folder + CSV file + Crawl summary
+                </p>
+            </div>
+
+            <div id="error-section" class="error-section">
+                <div class="error-icon">❌</div>
+                <h3>Scraping Failed</h3>
+                <p id="error-message" class="error-message">An error occurred during scraping.</p>
+            </div>
+
+            <div class="features">
+                <h3>Features</h3>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">🕷️</div>
+                        <div class="feature-title">Full Website Crawling</div>
+                        <div class="feature-description">Crawls through all pages and links within the website to find every image</div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">📊</div>
+                        <div class="feature-title">Detailed CSV Reports</div>
+                        <div class="feature-description">Get structured data with page URL, image ID, and direct image URLs</div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">📦</div>
+                        <div class="feature-title">Organized Downloads</div>
+                        <div class="feature-description">Images and data delivered in a convenient ZIP package</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentTaskId = null;
+        let progressInterval = null;
+
+        document.getElementById('scrape-btn').addEventListener('click', startScraping);
+        document.getElementById('website-url').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                startScraping();
+            }
+        });
+
+        async function startScraping() {
+            const url = document.getElementById('website-url').value.trim();
+            
+            if (!url) {
+                alert('Please enter a website URL');
+                return;
+            }
+
+            if (!isValidUrl(url)) {
+                alert('Please enter a valid URL (e.g., https://example.com)');
+                return;
+            }
+
+            // Reset UI
+            resetUI();
+            showProgressSection();
+            
+            const scrapeBtn = document.getElementById('scrape-btn');
+            scrapeBtn.disabled = true;
+            scrapeBtn.textContent = '⏳ Scraping...';
+
+            try {
+                const response = await fetch('/scrape', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ url: url })
+                });
+
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                currentTaskId = data.task_id;
+                startProgressPolling();
+
+            } catch (error) {
+                showError(error.message);
+                resetButton();
+            }
+        }
+
+        function startProgressPolling() {
+            progressInterval = setInterval(async () => {
+                try {
+                    const response = await fetch(`/status/${currentTaskId}`);
+                    const status = await response.json();
+
+                    updateProgress(status);
+
+                    if (status.status === 'completed') {
+                        clearInterval(progressInterval);
+                        showDownloadSection(status);
+                        resetButton();
+                    } else if (status.status === 'error') {
+                        clearInterval(progressInterval);
+                        showError(status.message);
+                        resetButton();
+                    }
+                } catch (error) {
+                    console.error('Error polling status:', error);
+                }
+            }, 1000);
+        }
+
+        function updateProgress(status) {
+            const progressBar = document.getElementById('progress-bar');
+            const progressPercentage = document.getElementById('progress-percentage');
+            const statusMessage = document.getElementById('status-message');
+            const pagesFound = document.getElementById('pages-found');
+            const pagesScraped = document.getElementById('pages-scraped');
+            const totalImages = document.getElementById('total-images');
+            const downloadedImages = document.getElementById('downloaded-images');
+
+            progressBar.style.width = `${status.progress || 0}%`;
+            progressPercentage.textContent = `${status.progress || 0}%`;
+            statusMessage.textContent = status.message || 'Processing...';
+            pagesFound.textContent = status.pages_found || 0;
+            pagesScraped.textContent = status.pages_scraped || 0;
+            totalImages.textContent = status.total_images || 0;
+            downloadedImages.textContent = status.downloaded || 0;
+        }
+
+        function showProgressSection() {
+            document.getElementById('progress-section').style.display = 'block';
+            document.getElementById('download-section').style.display = 'none';
+            document.getElementById('error-section').style.display = 'none';
+        }
+
+        function showDownloadSection(status) {
+            document.getElementById('progress-section').style.display = 'none';
+            document.getElementById('download-section').style.display = 'block';
+            document.getElementById('error-section').style.display = 'none';
+            
+            document.getElementById('final-count').textContent = status.downloaded || 0;
+            document.getElementById('download-btn').href = `/download/${currentTaskId}`;
+        }
+
+        function showError(message) {
+            document.getElementById('progress-section').style.display = 'none';
+            document.getElementById('download-section').style.display = 'none';
+            document.getElementById('error-section').style.display = 'block';
+            
+            document.getElementById('error-message').textContent = message;
+        }
+
+        function resetUI() {
+            document.getElementById('progress-section').style.display = 'none';
+            document.getElementById('download-section').style.display = 'none';
+            document.getElementById('error-section').style.display = 'none';
+            
+            if (progressInterval) {
+                clearInterval(progressInterval);
+            }
+        }
+
+        function resetButton() {
+            const scrapeBtn = document.getElementById('scrape-btn');
+            scrapeBtn.disabled = false;
+            scrapeBtn.textContent = '🚀 Start Scraping';
+        }
+
+        function isValidUrl(string) {
+            try {
+                const url = new URL(string);
+                return url.protocol === 'http:' || url.protocol === 'https:';
+            } catch (_) {
+                return false;
+            }
+        }
+    </script>
+</body>
+</html> 
